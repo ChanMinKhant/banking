@@ -59,7 +59,7 @@ public class CustomerServlet extends HttpServlet {
             }
         } catch(Exception e){
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/jsp/customer.jsp?error=" + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/jsp/customer_dashboard.jsp?error=" + e.getMessage());
             return;
         }
 

@@ -13,6 +13,13 @@
     // Fetch latest balance from DB
     CustomerDAO dao = new CustomerDAOImpl();
     double latestBalance = dao.getBalance(user.getPhoneNumber());
+
+    // Get messages from request (forwarded from servlet) or from query string
+    String error = (String) request.getAttribute("error");
+    if(error == null) error = request.getParameter("error");
+
+    String message = (String) request.getAttribute("message");
+    if(message == null) message = request.getParameter("message");
 %>
 
 <!DOCTYPE html>
@@ -46,9 +53,29 @@
 
         .balance {
             font-size: 22px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             text-align: center;
             color: #333;
+        }
+
+        .message {
+            text-align: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .actions {
@@ -99,6 +126,14 @@
 
 <div class="container">
 
+    <%-- Show success or error messages --%>
+    <% if(message != null){ %>
+        <div class="message success"><%= message %></div>
+    <% } %>
+    <% if(error != null){ %>
+        <div class="message error"><%= error %></div>
+    <% } %>
+
     <p class="balance">Current Balance: $<span id="currentBalance"><%= String.format("%.2f", latestBalance) %></span></p>
 
     <div class="actions">
@@ -130,7 +165,6 @@
 
     // Refresh balance every 5 seconds
     setInterval(fetchBalance, 5000);
-
     // Fetch immediately on page load
     fetchBalance();
 </script>
