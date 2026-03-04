@@ -61,6 +61,7 @@ public class CustomerDAOImpl implements CustomerDAO {
 
     @Override
     public boolean payBill(String customerPhone, String invoiceId) {
+        // Calls the refactored stored procedure that handles the balance swap
         String sql = "{CALL sp_pay_bill(?, ?)}";
         try (Connection conn = DBConnection.getConnection();
              CallableStatement cs = conn.prepareCall(sql)) {
@@ -68,13 +69,17 @@ public class CustomerDAOImpl implements CustomerDAO {
             cs.setString(2, invoiceId);
             cs.execute();
             return true;
-        } catch (Exception e) { e.printStackTrace(); return false; }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+            return false; 
+        }
     }
 
     @Override
     public List<Transaction> getTransactions(String phone) {
         List<Transaction> list = new ArrayList<>();
-        String sql = "SELECT * FROM view_transactions WHERE from_user=? OR to_user=?";
+        // Use phone to find the username first, then filter the view
+        String sql = "SELECT * FROM view_transactions WHERE from_user=(SELECT username FROM users WHERE phone_number=?) OR to_user=(SELECT username FROM users WHERE phone_number=?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, phone);
@@ -98,25 +103,27 @@ public class CustomerDAOImpl implements CustomerDAO {
     @Override
     public List<Bill> getUnpaidBills(String phone) {
         List<Bill> list = new ArrayList<>();
-        String sql = "SELECT * FROM view_unpaid_bills WHERE customer_name=(SELECT username FROM users WHERE phone_number=?)";
+        // REFACTORED: No longer filtering by customer phone.
+        // Any customer can see any unpaid bill to pay it.
+        String sql = "SELECT * FROM view_unpaid_bills";
+        
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, phone);
-            ResultSet rs = ps.executeQuery();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
             while(rs.next()) {
                 Bill b = new Bill();
                 b.setInvoiceId(rs.getString("invoice_id"));
+                b.setDescription(rs.getString("description")); // Refactored column
                 b.setAmount(rs.getDouble("amount"));
                 b.setDueDate(rs.getDate("due_date"));
-                b.setCustomerName(rs.getString("customer_name"));
-                b.setServiceName(rs.getString("service_name"));
+                b.setServiceName(rs.getString("service_provider"));
                 list.add(b);
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
 
-    // ✅ Fixed transferMoney method with connection
     @Override
     public boolean transferMoney(String fromPhone, String toPhone, double amount, String password) throws Exception {
         try (Connection conn = DBConnection.getConnection()) {
@@ -125,6 +132,7 @@ public class CustomerDAOImpl implements CustomerDAO {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, fromPhone);
             ResultSet rs = ps.executeQuery();
+            
             if(rs.next()){
                 String dbPass = rs.getString("password");
                 double balance = rs.getDouble("balance");
@@ -162,5 +170,28 @@ public class CustomerDAOImpl implements CustomerDAO {
             if(rs.next()) return rs.getString("username");
         } catch(Exception e) { e.printStackTrace(); }
         return null;
+    }
+    
+    @Override
+    public boolean payBill(String customerPhone, String invoiceId, String password) throws Exception {
+        // 1. Verify password first
+        String checkSql = "SELECT password FROM users WHERE phone_number=?";
+        try (Connection conn = DBConnection.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(checkSql);
+            ps.setString(1, customerPhone);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                if (!rs.getString("password").equals(password)) {
+                    throw new Exception("Invalid PIN/Password!");
+                }
+            }
+
+            // 2. Call the stored procedure to pay
+            CallableStatement cs = conn.prepareCall("{CALL sp_pay_bill(?, ?)}");
+            cs.setString(1, customerPhone);
+            cs.setString(2, invoiceId);
+            return cs.executeUpdate() > 0;
+        }
     }
 }

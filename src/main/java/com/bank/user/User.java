@@ -7,7 +7,9 @@ public class User {
     private String password;
     private String role;
     private double balance;
-    private boolean isActive;
+    private String status; // 'ACTIVE' or 'BLOCKED'
+
+    public User() {}
 
     // Getters and Setters
     public int getUserId() { return userId; }
@@ -22,6 +24,6 @@ public class User {
     public void setRole(String role) { this.role = role; }
     public double getBalance() { return balance; }
     public void setBalance(double balance) { this.balance = balance; }
-    public boolean isActive() { return isActive; }
-    public void setActive(boolean isActive) { this.isActive = isActive; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

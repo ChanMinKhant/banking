@@ -1,2 +1,5 @@
 eclipse.preferences.version=1
 encoding//src/main/java/com/bank/customer/CustomerDAOImpl.java=UTF-8
+encoding//src/main/webapp/jsp/generate_bill.jsp=UTF-8
+encoding//src/main/webapp/jsp/manage_bills.jsp=UTF-8
+encoding//src/main/webapp/jsp/service_dashboard.jsp=UTF-8

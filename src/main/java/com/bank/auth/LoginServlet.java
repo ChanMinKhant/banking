@@ -30,7 +30,7 @@ public class LoginServlet extends HttpServlet {
                     response.sendRedirect("../jsp/admin.jsp");
                     break;
                 case "SERVICE":
-                    response.sendRedirect("../jsp/service.jsp");
+                    response.sendRedirect("../jsp/service_dashboard.jsp");
                     break;
             }
         } else {

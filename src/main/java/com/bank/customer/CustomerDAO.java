@@ -7,28 +7,32 @@ import java.util.List;
 
 public interface CustomerDAO {
 
-    // Check balance
+    // Retrieve current balance from database
     double getBalance(String phone);
 
-    // Deposit money
+    // Add funds to account via sp_deposit
     boolean deposit(String phone, double amount);
 
-    // Withdraw money
+    // Remove funds from account via sp_withdraw
     boolean withdraw(String phone, double amount);
 
-    // Transfer money to another customer
+    // Internal direct transfer logic
     boolean transfer(String fromPhone, String toPhone, double amount);
 
-    // Pay bill
+    // Logic to claim and pay an invoice via invoice_id
     boolean payBill(String customerPhone, String invoiceId);
 
-    // Get transaction history
+    // Fetch history from view_transactions
     List<Transaction> getTransactions(String phone);
 
-    // Get unpaid bills
+    // Fetch all available unpaid bills from view_unpaid_bills
     List<Bill> getUnpaidBills(String phone);
 
-    public boolean transferMoney(String fromPhone, String toPhone, double amount, String password) throws Exception;
+    // Secure transfer with password validation
+    boolean transferMoney(String fromPhone, String toPhone, double amount, String password) throws Exception;
 
-	String getUserNameByPhone(String phone);
+    // Helper to find recipient names for confirmation screens
+    String getUserNameByPhone(String phone);
+
+	boolean payBill(String customerPhone, String invoiceId, String password) throws Exception;
 }

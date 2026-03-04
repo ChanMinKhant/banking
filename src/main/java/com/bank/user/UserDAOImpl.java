@@ -1,7 +1,6 @@
 package com.bank.user;
 
 import com.bank.util.DBConnection;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +9,8 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User login(String identifier, String password) {
-        String sql = "SELECT * FROM users WHERE (username=? OR phone_number=?) AND password=? AND is_active=1";
+        // REFACTORED: Now checks 'status' column instead of 'is_active'
+        String sql = "SELECT * FROM users WHERE (username=? OR phone_number=?) AND password=? AND status='ACTIVE'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -30,18 +30,18 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean registerUser(User user) {
-        String sql = "INSERT INTO users(username, phone_number, password, role, balance, is_active) VALUES(?,?,?,?,?,1)";
+        // REFACTORED: Inserts 'ACTIVE' into status column
+        String sql = "INSERT INTO users(username, phone_number, password, role, balance, status) VALUES(?,?,?,?,?,'ACTIVE')";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPhoneNumber());
             ps.setString(3, user.getPassword());
-            ps.setString(4, "CUSTOMER");  // always CUSTOMER
+            ps.setString(4, "CUSTOMER");
             ps.setDouble(5, user.getBalance());
 
-            int rows = ps.executeUpdate();
-            return rows > 0;
+            return ps.executeUpdate() > 0;
 
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Username or phone already exists!");
@@ -62,7 +62,6 @@ public class UserDAOImpl implements UserDAO {
             if (rs.next()) {
                 return extractUser(rs);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,7 +79,6 @@ public class UserDAOImpl implements UserDAO {
             while (rs.next()) {
                 customers.add(extractUser(rs));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -96,7 +94,8 @@ public class UserDAOImpl implements UserDAO {
         u.setPassword(rs.getString("password"));
         u.setRole(rs.getString("role"));
         u.setBalance(rs.getDouble("balance"));
-        u.setActive(rs.getBoolean("is_active"));
+        // REFACTORED: Pull status string for the User model
+        u.setStatus(rs.getString("status")); 
         return u;
     }
 }
