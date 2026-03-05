@@ -137,11 +137,8 @@
     <p class="balance">Current Balance: $<span id="currentBalance"><%= String.format("%.2f", latestBalance) %></span></p>
 
     <div class="actions">
-        <a href="<%=request.getContextPath()%>/jsp/deposit.jsp">Deposit Money</a>
-        <a href="<%=request.getContextPath()%>/jsp/withdraw.jsp">Withdraw Money</a>
         <a href="<%=request.getContextPath()%>/jsp/transfer.jsp">Transfer Money</a>
         <a href="<%=request.getContextPath()%>/jsp/pay_bill.jsp">Pay Bill</a>
-        <a href="<%=request.getContextPath()%>/jsp/unpaid_bills.jsp">View Unpaid Bills</a>
         <a href="<%=request.getContextPath()%>/jsp/transactions.jsp">Transaction History</a>
     </div>
 
